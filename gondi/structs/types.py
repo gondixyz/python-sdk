@@ -1,0 +1,5 @@
+ADDRESS = "address"
+BYTES32 = "bytes32"
+STRING = "string"
+UINT256 = "uint256"
+UINT8 = "uint8"
