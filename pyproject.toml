@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "gondi"
+version = "0.1.0"
+description = "Gondi SDK"
+authors = ["Florida Street"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+web3 = "^6.6.1"
+pyyaml = "^6.0.1"
+tenacity = "^8.2.2"
+addict = "^2.4.0"
+eth-abi = "^4.1.0"
+pytest-testmon = "^2.0.12"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+ruff = "^0.0.262"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+
+[tool.coverage.run]
+omit = [
+    "test/*",
+    "scripts/*"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "B", "SIM", "RET", "PLC", "PLE"]
+exclude = [
+  ".venv",
+  "src/.eggs",
+]
+fix = true
+
+[tool.ruff.isort]
+known-third-party = ["src"]
+
+[tool.ruff.pycodestyle]
+ignore-overlong-task-comments = true
+max-doc-length = 200
