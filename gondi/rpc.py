@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Callable
 
 import tenacity
-from web3 import AsyncWeb3
+import web3
 from web3.auto import w3
 
 MAX_WAIT = 5
@@ -20,7 +20,7 @@ def requires_start(fn):
 
 class RPC:
     def __init__(self, rpc_url: str):
-        self._web3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(rpc_url))
+        self._web3 = web3.AsyncWeb3(web3.AsyncWeb3.AsyncHTTPProvider(rpc_url))
         self._started = False
         self._nonce = {}
 
