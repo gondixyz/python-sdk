@@ -1,6 +1,6 @@
 [![Actions status](https://github.com/gondixyz/python-sdk/workflows/pre-merge.yml/badge.svg)](https://github.com/gondixyz/python-sdk/actions)
-Gondi Python SDK
 
+Gondi Python SDK
 
 Local setup:
 - Download poetry: `pip install poetry`
