@@ -1,3 +1,4 @@
+[![Actions status](https://github.com/gondixyz/python-sdk/workflows/CI/badge.svg)](https://github.com/gondixyz/python-sdk/actions)
 Gondi Python SDK
 
 

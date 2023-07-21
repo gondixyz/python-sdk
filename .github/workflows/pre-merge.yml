@@ -16,8 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     container: python:bullseye
     steps:
+      - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.GONDI_PYTHON_GITHUB_ACTIONS }}
       - uses: ./.github/actions/env
       - name: black
         run: poetry run black .
       - name: ruff
         run: poetry run ruff .
+  test-all:
+    runs-on: ubuntu-latest
+    container: python:bullseye
+    steps:
+      - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.GONDI_PYTHON_GITHUB_ACTIONS }}
+      - uses: ./.github/actions/env
+      - run: poetry run python --version
+      - name: Run all tests and check coverage.
+        run:  make coverage
