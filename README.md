@@ -1,6 +1,5 @@
 Gondi Python SDK
 
-
 Local setup:
 - Download poetry: `pip install poetry`
 - Clone repo: `mkdir gondi && cd gondi && git clone https://github.com/gondixyz/python-sdk.git && cd python-sdk`

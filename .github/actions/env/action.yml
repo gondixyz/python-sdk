@@ -1,0 +1,22 @@
+name: Environment setup
+runs:
+  using: composite
+  steps:
+    - name: Install poetry
+      run: |
+        pip install poetry==1.4.0
+        poetry config virtualenvs.in-project true
+        poetry config virtualenvs.create true
+      shell: bash
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v2
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+
+    - name: Install dependencies
+      run: poetry install
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      shell: bash
