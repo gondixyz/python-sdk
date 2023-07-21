@@ -1,0 +1,6 @@
+**/*.pyc
+.vscode/
+poetry.lock
+test/__pycache__
+gondi/__pycache__
+.coverage
