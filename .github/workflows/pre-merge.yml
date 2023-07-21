@@ -1,0 +1,23 @@
+name: Pre merge checks
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+on: 
+  pull_request:
+    type:
+      - push
+    branches:
+      - 'release/**'
+      - master
+      - develop
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container: python:bullseye
+    steps:
+      - uses: ./.github/actions/env
+      - name: black
+        run: poetry run black .
+      - name: ruff
+        run: poetry run ruff .
