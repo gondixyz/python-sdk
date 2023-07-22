@@ -2,7 +2,7 @@ import unittest
 from typing import Any, Self
 from unittest.mock import patch
 
-from gondi.rpc import RPC, DEFAULT_GAS
+from gondi.common_utils.rpc import RPC, DEFAULT_GAS
 from test.mocks import MockedWeb3
 
 

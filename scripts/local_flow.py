@@ -3,10 +3,10 @@ import logging
 import gondi.contracts as contracts
 from web3.datastructures import MutableAttributeDict
 
-from gondi.rpc import RPC
+from gondi.common_utils.rpc import RPC
 from gondi.structs.loan import BaseLoanOffer, MultiSourceLoan, RenegotiationOffer
 from gondi.structs.utils import sign_object
-from gondi.utils import (
+from gondi.common_utils import (
     Account,
     Environment,
     load_config,

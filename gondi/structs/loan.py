@@ -5,7 +5,7 @@ import web3
 from eth_abi import encode
 from eth_abi.packed import encode_packed
 
-from gondi.utils import Environment, load_config
+from gondi.common_utils.utils import Environment, load_config
 from gondi.structs.types import ADDRESS, BYTES32, UINT256
 from gondi.structs.utils import extract_fields, hash
 

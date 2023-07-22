@@ -4,8 +4,8 @@ import logging
 import addict
 
 import gondi.contracts as contracts
-from gondi.rpc import RPC
-from gondi.utils import Account, Environment, load_config
+from gondi.common_utils.rpc import RPC
+from gondi.common_utils.utils import Account, Environment, load_config
 
 logging.getLogger().setLevel(logging.INFO)
 

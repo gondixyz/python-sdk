@@ -1,8 +1,8 @@
 import addict
 
+import gondi.common_utils.rpc as rpc
 import gondi.contracts.abi.auction_loan_liquidator as auction_loan_liquidator
-import gondi.rpc as rpc
-from gondi.utils import Account
+from gondi.common_utils.utils import Account
 from gondi.contracts.base_contract import BaseContract
 
 
