@@ -1,6 +1,9 @@
-from typing import Any
+from enum import Enum
+from typing import Any, Generic, TypeVar
 
 from dataclasses import asdict, dataclass
+
+T = TypeVar("T")
 
 
 class AsKwargsMixin:
@@ -60,6 +63,72 @@ class ListingInput(AsKwargsMixin):
     with_loans: bool | None = None
     first: int | None = None
     after: str | None = None
+
+    @property
+    def as_parameter(self):
+        return False
+
+
+class OfferStatus(Enum):
+    ACTIVE = "ACTIVE"
+    CANCELLED = "CANCELLED"
+    EXECUTED = "EXECUTED"
+    INACTIVE = "INACTIVE"
+    EXPIRED = "EXPIRED"
+    OUTPERFORMED = "OUTPERFORMED"
+
+
+class OffersSortField(Enum):
+    DURATION = "DURATION"
+    TOTAL_INTEREST = "TOTAL_INTEREST"
+    PRINCIPAL_AMOUNT = "PRINCIPAL_AMOUNT"
+    APR_BPS = "APR_BPS"
+    EXPIRATION = "EXPIRATION"
+    REPAYMENT = "REPAYMENT"
+    CREATED_DATE = "CREATED_DATE"
+    STATUS = "STATUS"
+
+
+class Ordering(Enum):
+    ASC = "ASC"
+    DESC = "DESC"
+
+
+class SortInput(Generic[T]):
+    field: T
+    ordering: str
+
+
+class OffersSortInput(AsKwargsMixin, SortInput):
+    field: OffersSortField
+
+
+class Interval(AsKwargsMixin):
+    min: float | None = None
+    max: float | None = None
+
+
+@dataclass(frozen=True)
+class TermsFilter(AsKwargsMixin):
+    apr_bps: Interval | None = None
+    principal: Interval | None = None
+    duration: Interval | None = None
+
+
+@dataclass(frozen=True)
+class OfferInput(AsKwargsMixin):
+    lender_address: str | None = None
+    borrower_address: str | None = None
+    statuses: list[OfferStatus] | None = None
+    hidden: bool | None = None
+    only_single_nft_offers: bool | None = False
+    only_collection_offers: bool | None = False
+    sort_by: list[OffersSortInput] | None = None
+    nfts: list[int] | None = None
+    collections: list[int] | None = None
+    first: int | None = 10
+    after: str | None = None
+    terms: TermsFilter | None = None
 
     @property
     def as_parameter(self):
