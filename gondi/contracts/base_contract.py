@@ -1,8 +1,8 @@
 import addict
 from web3.auto import w3
 
-import gondi.rpc as rpc
-from gondi.utils import Account, load_config
+import gondi.common_utils.rpc as rpc
+from gondi.common_utils.utils import Account, load_config
 
 
 class BaseContract:

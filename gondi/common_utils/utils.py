@@ -19,7 +19,7 @@ class Account(NamedTuple):
 
 
 def load_config(env: Environment) -> Dict:
-    base_dir = f"{os.path.dirname(os.path.realpath(__file__)) }/resources"
+    base_dir = f"{os.path.dirname(os.path.realpath(__file__)) }/../resources"
     filename = f"{base_dir}/config.{env.value}"
     with open(filename) as f:
         raw = Dict({k.lower(): v for k, v in yaml.load(f, yaml.Loader).items()})

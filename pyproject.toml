@@ -14,6 +14,10 @@ tenacity = "^8.2.2"
 addict = "^2.4.0"
 eth-abi = "^4.1.0"
 pytest-testmon = "^2.0.12"
+gql = "^3.4.1"
+aiohttp = "^3.8.5"
+python-dotenv = "^1.0.0"
+siwe = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"

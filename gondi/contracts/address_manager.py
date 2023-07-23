@@ -1,8 +1,8 @@
 import addict
 
-import gondi.rpc as rpc
+import gondi.common_utils.rpc as rpc
 import gondi.contracts.abi.address_manager as address_manager
-from gondi.utils import Account
+from gondi.common_utils.utils import Account
 from gondi.contracts.base_contract import BaseContract
 
 

@@ -1,0 +1,723 @@
+type ActivationCode {
+  code: String!
+  status: ActivationCodeStatus!
+}
+
+enum ActivationCodeStatus {
+  VALID
+  ALREADY_USED
+}
+
+interface Activity implements Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+}
+
+type ActivityConnection {
+  pageInfo: PageInfo!
+  edges: [ActivityEdge!]!
+  totalCount: Int
+}
+
+type ActivityEdge {
+  node: Activity!
+  cursor: String!
+}
+
+enum ActivityType {
+  LISTING
+  TRANSFER
+  SALE
+  MINT
+  OFFER
+}
+
+scalar Address
+
+type Asset {
+  data: String!
+  accessTypeName: String!
+  contentTypeMime: String!
+  cacheUrl: String
+}
+
+scalar BigInt
+
+type Cancel implements Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  order: Order!
+}
+
+type Cart implements Node {
+  id: String!
+  createdDate: datetime!
+  items(first: Int! = 10, after: String): NFTConnection!
+}
+
+type Collection implements Node {
+  id: String!
+  name: String
+  slug: String
+  description: String
+  discordUrl: String
+  twitterUsername: String
+  externalUrl: String
+  collectionUrl: String
+  verified: Boolean!
+  royalties: [Royalty!]!
+  image: Asset
+  bannerImage: Asset
+  contractData: ContractData
+  statistics: ManyNftsStatistics!
+  nftsCount: Int
+}
+
+type CollectionConnection {
+  pageInfo: PageInfo!
+  edges: [CollectionEdge!]!
+  totalCount: Int
+}
+
+type CollectionEdge {
+  node: Collection!
+  cursor: String!
+}
+
+type CollectionOrder implements Order & Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  price: Float!
+  currencyAddress: Address!
+  marketPlace: String!
+  marketPlaceId: String!
+  status: String!
+  createdDate: datetime!
+  expiration: datetime
+  maker: String!
+  isAsk: Boolean!
+  executionData: String!
+  orderType: String!
+  currency: Currency!
+  collection: Collection!
+}
+
+enum CollectionSortField {
+  FLOOR_PRICE
+  TOTAL_VOLUME_ONE_DAY
+  TOTAL_VOLUME_ONE_WEEK
+  TOTAL_VOLUME_ONE_MONTH
+  TOTAL_VOLUME_THREE_MONTH
+  TOTAL_VOLUME_ONE_YEAR
+  TOTAL_VOLUME
+  OWNERS
+  ITEMS_COUNT
+  SETS_COUNT
+}
+
+input CollectionSortInput {
+  field: CollectionSortField!
+  order: Ordering!
+}
+
+type ContractData implements Node {
+  id: String!
+  blockchain: String!
+  contractAddress: Address!
+  createdDate: datetime!
+  creatorAddress: Address
+}
+
+type Credential {
+  key: String!
+  secret: String!
+}
+
+type Currency implements Node {
+  id: String!
+  symbol: String!
+  decimals: Int!
+  address: Address!
+}
+
+type DataPoint {
+  x: Float!
+  y: Float!
+}
+
+input EditUserInput {
+  userId: Int!
+  twitterHandle: String = null
+  mail: String = null
+  username: String = null
+  about: String = null
+}
+
+enum Entity {
+  NFT
+  SET
+  COLLECTION
+}
+
+scalar Hash
+
+type ManyNftsStatistics {
+  floorPrice: Float
+  floorPrice7d: Float
+  floorPrice30d: Float
+  floorPriceExpiration: datetime
+  bestOffer: Float
+  lastSale: Sale
+  averageHoldingTime: Float
+  totalVolume1d: Float
+  totalVolume1w: Float
+  totalVolume1m: Float
+  totalVolume2m: Float
+  totalVolume3m: Float
+  totalVolume4m: Float
+  totalVolume1y: Float
+  totalVolume: Float
+  minFloor1d: Float
+  minFloor1w: Float
+  minFloor1m: Float
+  minFloor2m: Float
+  minFloor3m: Float
+  minFloor4m: Float
+  minFloor1y: Float
+  maxFloor1d: Float
+  maxFloor1w: Float
+  maxFloor1m: Float
+  maxFloor2m: Float
+  maxFloor3m: Float
+  maxFloor4m: Float
+  maxFloor1y: Float
+  percentageListed: Float
+  collectionsCount: Float
+  nftsCount: Float
+  numberOfOwners: Int
+}
+
+type Mint implements Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  receiver: String!
+  nft: NFT!
+}
+
+type Mutation {
+  generateSignInNonce(nonceInput: NonceInput!): String!
+  signInWithEthereum(siweInput: SiweInput!): String!
+  activateUser(code: String!): User!
+  editUser(user: EditUserInput!): User!
+  createSet(set: SetInput!): Set!
+  assignNftsToSet(nfts: [NftInput!]!, setId: Int = null, slug: String = null): Set!
+  editSet(setId: Int!, name: String!, description: String!, isPublic: Boolean!, isActive: Boolean!, isVerified: Boolean = false, tags: [String!] = null): Set!
+  addCollaboratorToSet(setId: Int!, userId: Int!): Set!
+  appendNftToSet(setId: Int!, nftId: Int!, added: Boolean!): Set!
+  appendSetFollower(setId: Int!, userId: Int!, active: Boolean!): SetFollower
+  updateSetFollowerPosition(oldPosition: Int!, newPosition: Int!, setId: Int!): SetFollower
+  appendSetShare(setId: Int!, userId: Int!, shared: Boolean!): SetShare!
+  createActivationCodes(activationCodes: [String!]!): [ActivationCode!]!
+  createApiKey: Credential!
+  uploadProfilePicture(userId: String!, profilePicture: Upload!): User!
+  deleteProfilePicture(userId: Int!): User!
+  verifyMailValidationCode(userId: Int!, email: String!, validationCode: String!): User!
+  resendVerificationEmail(userId: Int!): User!
+  addItemsToCart(userId: Int!, nftIds: [Int!]!): [Int!]!
+  removeItemsFromCart(userId: Int!, nftIds: [Int!]!): [Int!]!
+  removeAllItemsFromCart(userId: Int!): [Int!]!
+}
+
+type NFT implements Node {
+  id: String!
+  createdDate: datetime!
+  tokenId: BigInt!
+  name: String
+  url: String
+  nftId: String!
+  description: String
+  rarityScore: Float
+  rarityRank: Int
+  isFlagged: Boolean
+  traits: [Trait!]!
+  image: Asset
+  collection: Collection
+  owner: Address
+  statistics: Statistics!
+}
+
+type NFTConnection {
+  pageInfo: PageInfo!
+  edges: [NFTEdge!]!
+  totalCount: Int
+}
+
+type NFTEdge {
+  node: NFT!
+  cursor: String!
+}
+
+input NftInput {
+  nftId: Int!
+}
+
+enum NftSortField {
+  FLOOR_PRICE
+  RECENTLY_LISTED
+  RARITY
+  TOKEN_ID
+}
+
+input NftSortInput {
+  field: NftSortField!
+  order: Ordering!
+}
+
+interface Node {
+  id: String!
+}
+
+input NonceInput {
+  blockchain: String!
+  walletAddress: Address!
+}
+
+interface Notification implements Node {
+  id: String!
+  createdOn: datetime!
+  readOn: datetime
+  notificationType: String!
+  user: User!
+}
+
+interface Order implements Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  price: Float!
+  currencyAddress: Address!
+  marketPlace: String!
+  marketPlaceId: String!
+  status: String!
+  createdDate: datetime!
+  expiration: datetime
+  maker: String!
+  isAsk: Boolean!
+  executionData: String!
+  orderType: String!
+  currency: Currency!
+}
+
+type OrderConnection {
+  pageInfo: PageInfo!
+  edges: [OrderEdge!]!
+  totalCount: Int
+}
+
+type OrderEdge {
+  node: Order!
+  cursor: String!
+}
+
+enum Ordering {
+  ASC
+  DESC
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type PriceFilterOption {
+  minPrice: Float
+  maxPrice: Float
+}
+
+type Query {
+  me: User
+  listNfts(searchTerm: String = null, first: Int! = 10, after: String): NFTConnection!
+  getNftById(nftId: Int!): NFT
+  getNftBySlugAndTokenId(slug: String!, tokenId: BigInt!): NFT
+  getCollectionById(slug: String = null, collectionId: Int = null): Collection
+  listCollections(first: Int! = 10, after: String, searchTerm: String = null, isInSet: Boolean = false, sortBy: [CollectionSortInput!] = null): CollectionConnection!
+  listNftsByCollection(slug: String = null, collectionId: Int = null, minPrice: Float = null, maxPrice: Float = null, minRarity: Float = null, maxRarity: Float = null, buyNowOnly: Boolean = null, tokenId: Int = null, traits: [TraitKeyValueOptionsInput!] = null, traitRanges: [TraitRangeOptionsInput!] = null, sortBy: [NftSortInput!] = null, setIds: [Int!] = null, first: Int = 10, after: String): NFTConnection!
+  listNftsByCollectionOffsetLimit(slug: String = null, collectionId: Int = null, minPrice: Float = null, maxPrice: Float = null, minRarity: Float = null, maxRarity: Float = null, buyNowOnly: Boolean = null, tokenId: Int = null, traits: [TraitKeyValueOptionsInput!] = null, traitRanges: [TraitRangeOptionsInput!] = null, sortBy: [NftSortInput!] = null, setIds: [Int!] = null, offset: Int = 0, limit: Int = 50): [NFT!]!
+  listOrders(first: Int! = 50, after: String): OrderConnection!
+  getUserByBlockchainAndWallet(blockchain: String!, walletAddress: Address!): User
+  getSetById(setId: Int = null, slug: String = null, userId: Int = null): Set
+  listSets(first: Int! = 50, after: String, isActive: Boolean = true, includeFollowedSets: Boolean = true, includeOwnSets: Boolean = false, onlySingleCollection: Boolean = false, searchTerm: String = null, collectionId: Int = null, tags: [String!] = null, userId: Int = null, sortBy: [SetSortInput!] = null): SetConnection!
+  listSetsByUser(userId: Int!, first: Int! = 50, after: String, isActive: Boolean = true, includeOwnSets: Boolean = true, includeFollowedSets: Boolean = false): SetConnection!
+  listNftsBySet(setId: Int = null, slug: String = null, minPrice: Float = null, maxPrice: Float = null, minRarity: Float = null, maxRarity: Float = null, buyNowOnly: Boolean = null, tokenId: Int = null, traits: [TraitKeyValueOptionsInput!] = null, traitRanges: [TraitRangeOptionsInput!] = null, sortBy: [NftSortInput!] = null, first: Int = 10, after: String): NFTConnection!
+  listNftsBySetOffsetLimit(setId: Int = null, slug: String = null, minPrice: Float = null, maxPrice: Float = null, minRarity: Float = null, maxRarity: Float = null, buyNowOnly: Boolean = null, tokenId: Int = null, traits: [TraitKeyValueOptionsInput!] = null, traitRanges: [TraitRangeOptionsInput!] = null, sortBy: [NftSortInput!] = null, offset: Int = 0, limit: Int = 50): [NFT!]!
+  listSetFollowersBySet(setId: Int = null, slug: String = null, first: Int! = 50, after: String): SetFollowerConnection!
+  listSetSharesBySet(setId: Int = null, slug: String = null, first: Int! = 50, after: String): SetShareConnection!
+  listSetStatusFilterOptions(setId: Int!): StatusFilterOption!
+  listSetTraitFilterOptions(setId: Int!): TraitFilterOption!
+  listSetPriceRangeOptions(setId: Int!): PriceFilterOption!
+  listSetRarityRangeOptions(setId: Int!): RarityFilterOption!
+  listCollectionStatusFilterOptions(setId: Int!): StatusFilterOption!
+  listCollectionTraitFilterOptions(collectionId: Int!): TraitFilterOption!
+  listCollectionTraitKeyOptions(collectionId: Int!, first: Int! = 50, after: String): TraitKeyOptionConnection!
+  listSetTraitKeyOptions(setId: Int!, first: Int! = 50, after: String): TraitKeyOptionConnection!
+  listCollectionTraitSingleValueOptions(collectionId: Int!, traitKey: String!, searchTerm: String = null, sortBy: [TraitSortInput!] = null, first: Int! = 50, after: String): TraitConnection!
+  listCollectionTraitRangeValueOptions(collectionId: Int!, traitKey: String!): Range!
+  listSetTraitSingleValueOptions(setId: Int!, traitKey: String!, searchTerm: String = null, sortBy: [TraitSortInput!] = null, first: Int! = 50, after: String): TraitConnection!
+  listSetTraitRangeValueOptions(setId: Int!, traitKey: String!): Range!
+  listCollectionPriceRangeOptions(collectionId: Int!): PriceFilterOption!
+  listCollectionRarityRangeOptions(collectionId: Int!): RarityFilterOption!
+  listActivitiesByCollection(collectionId: Int = null, slug: String = null, activityTypes: [ActivityType!] = null, first: Int! = 50, after: String): ActivityConnection!
+  listActivitiesBySet(setId: Int = null, slug: String = null, activityTypes: [ActivityType!] = null, userId: Int = null, first: Int! = 50, after: String): ActivityConnection!
+  listActivitiesByNft(nftId: Int!, activityTypes: [ActivityType!] = null, first: Int! = 50, after: String): ActivityConnection!
+  listActiveOrdersByNft(nftId: Int!, first: Int! = 50, after: String): OrderConnection!
+  getUserFiltersBySet(userId: Int!, setId: Int!): [ActivityType!]!
+  getActivationCode(activationCode: String!): ActivationCode
+  listCollectionPriceRangeDatapoints(collectionId: Int!): [DataPoint!]!
+  listSetPriceRangeDatapoints(setId: Int!): [DataPoint!]!
+  listTags(first: Int! = 10, after: String, searchTerm: String = null, sortBy: [TagSortInput!] = null): TagConnection!
+}
+
+type Range {
+  min: Int!
+  max: Int!
+}
+
+input RangeInput {
+  min: Int!
+  max: Int!
+}
+
+type RarityFilterOption {
+  minRarity: Float
+  maxRarity: Float
+}
+
+type Royalty {
+  percentage: Float!
+  beneficiary: String!
+}
+
+type Sale implements Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  taker: String!
+  order: Order!
+  nft: NFT!
+}
+
+type Set implements Node {
+  id: String!
+  name: String!
+  slug: String
+  description: String!
+  isPublic: Boolean!
+  isVerified: Boolean
+  isActive: Boolean!
+  nftsCount: Int!
+  followersCount: Int!
+  lastModified: datetime!
+  createdDate: datetime!
+  creator: User!
+  setFollowerPosition: SetFollower
+  statistics: ManyNftsStatistics!
+  collection: Collection
+  collections(first: Int! = 10, after: String): CollectionConnection!
+  creatorId: String!
+  creators: [User!]!
+  tags: [Tag!]
+}
+
+type SetConnection {
+  pageInfo: PageInfo!
+  edges: [SetEdge!]!
+  totalCount: Int
+}
+
+type SetEdge {
+  node: Set!
+  cursor: String!
+}
+
+type SetFollower implements Node {
+  id: String!
+  setId: Int!
+  userId: Int!
+  position: Int!
+  createdDate: datetime!
+}
+
+type SetFollowerConnection {
+  pageInfo: PageInfo!
+  edges: [SetFollowerEdge!]!
+  totalCount: Int
+}
+
+type SetFollowerEdge {
+  node: SetFollower!
+  cursor: String!
+}
+
+input SetInput {
+  creatorId: Int!
+  name: String!
+  description: String!
+  isPublic: Boolean!
+  isVerified: Boolean = false
+  nfts: [NftInput!]!
+  tags: [String!]
+}
+
+type SetNftNotification implements Notification & Node {
+  id: String!
+  createdOn: datetime!
+  readOn: datetime
+  notificationType: String!
+  user: User!
+  nftNotificationReasonName: String!
+  set: Set!
+  nft: NFT!
+}
+
+type SetShare implements Node {
+  id: String!
+  setId: Int!
+  userId: Int!
+  shared: Boolean!
+  lastModified: datetime!
+}
+
+type SetShareConnection {
+  pageInfo: PageInfo!
+  edges: [SetShareEdge!]!
+  totalCount: Int
+}
+
+type SetShareEdge {
+  node: SetShare!
+  cursor: String!
+}
+
+enum SetSortField {
+  FOLLOWERS_COUNT
+  CREATED_DATE
+}
+
+input SetSortInput {
+  field: SetSortField!
+  order: Ordering!
+}
+
+scalar Signature
+
+type SingleNFTOrder implements Order & Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  price: Float!
+  currencyAddress: Address!
+  marketPlace: String!
+  marketPlaceId: String!
+  status: String!
+  createdDate: datetime!
+  expiration: datetime
+  maker: String!
+  isAsk: Boolean!
+  executionData: String!
+  orderType: String!
+  currency: Currency!
+  nft: NFT!
+}
+
+input SiweInput {
+  message: String!
+  signature: Signature!
+}
+
+type Statistics {
+  floorPrice: Float
+  floorPrice7d: Float
+  floorPrice30d: Float
+  floorPriceExpiration: datetime
+  bestOffer: Float
+  lastSale: Sale
+  averageHoldingTime: Float
+  totalVolume1d: Float
+  totalVolume1w: Float
+  totalVolume1m: Float
+  totalVolume2m: Float
+  totalVolume3m: Float
+  totalVolume4m: Float
+  totalVolume1y: Float
+  totalVolume: Float
+  minFloor1d: Float
+  minFloor1w: Float
+  minFloor1m: Float
+  minFloor2m: Float
+  minFloor3m: Float
+  minFloor4m: Float
+  minFloor1y: Float
+  maxFloor1d: Float
+  maxFloor1w: Float
+  maxFloor1m: Float
+  maxFloor2m: Float
+  maxFloor3m: Float
+  maxFloor4m: Float
+  maxFloor1y: Float
+  percentageListed: Float
+  collectionsCount: Float
+}
+
+type StatusFilterOption {
+  statuses: [String!]!
+}
+
+type Subscription {
+  nftUpdate(entity: Entity!, id: Int!): NFT!
+  activityUpdate(entity: Entity!, id: Int!): Activity!
+  unseenActivityNotification(userId: Int!): UnseenActivityNotification!
+}
+
+type Tag implements Node {
+  id: String!
+  value: String!
+  createdDate: datetime!
+}
+
+type TagConnection {
+  pageInfo: PageInfo!
+  edges: [TagEdge!]!
+  totalCount: Int
+}
+
+type TagEdge {
+  node: Tag!
+  cursor: String!
+}
+
+enum TagSortField {
+  VALUE
+  POPULARITY
+}
+
+input TagSortInput {
+  field: TagSortField!
+  order: Ordering!
+}
+
+type Trait {
+  type: String!
+  value: String!
+  collectionId: String!
+  statistics: ManyNftsStatistics!
+}
+
+type TraitConnection {
+  pageInfo: PageInfo!
+  edges: [TraitEdge!]!
+  totalCount: Int
+}
+
+type TraitEdge {
+  node: Trait!
+  cursor: String!
+}
+
+type TraitFilterOption {
+  traitKeyValues: [TraitKeyValueOptions!]!
+}
+
+type TraitKeyOption {
+  key: String!
+  count: Int!
+  type: TraitType!
+}
+
+type TraitKeyOptionConnection {
+  pageInfo: PageInfo!
+  edges: [TraitKeyOptionEdge!]!
+  totalCount: Int
+}
+
+type TraitKeyOptionEdge {
+  node: TraitKeyOption!
+  cursor: String!
+}
+
+type TraitKeyValueOptions {
+  key: String!
+  values: [String!]!
+}
+
+input TraitKeyValueOptionsInput {
+  key: String!
+  values: [String!]!
+}
+
+input TraitRangeOptionsInput {
+  key: String!
+  range: RangeInput!
+}
+
+enum TraitSortField {
+  ALPHANUMERIC
+  FLOOR_PRICE
+  RARITY
+}
+
+input TraitSortInput {
+  field: TraitSortField!
+  order: Ordering!
+}
+
+enum TraitType {
+  SINGLE_VALUE
+  RANGE
+}
+
+type Transfer implements Activity & Node {
+  id: String!
+  txHash: Hash
+  timestamp: datetime!
+  receiver: String!
+  sender: String!
+  nft: NFT!
+}
+
+type UnseenActivityNotification {
+  setId: Int!
+  timestamp: datetime!
+  activityType: ActivityType!
+}
+
+scalar Upload
+
+type User implements Node {
+  id: String!
+  walletAddress: Address!
+  blockchain: String!
+  beta: Boolean!
+  twitterHandle: String
+  mail: String
+  username: String
+  about: String
+  profilePictureId: Int
+  cartId: Int
+  mailValidationDate: datetime
+  createdDate: datetime!
+  updatedAt: datetime
+  originalProfilePicture: String
+  size512ProfilePicture: String
+  size256ProfilePicture: String
+  size128ProfilePicture: String
+  size64ProfilePicture: String
+  cart: Cart!
+}
+
+scalar datetime

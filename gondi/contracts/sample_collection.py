@@ -2,9 +2,9 @@ import addict
 from web3.auto import w3
 
 import gondi.contracts.abi.sample_collection as sample_collection
-import gondi.rpc as rpc
+import gondi.common_utils.rpc as rpc
 from gondi.contracts.base_contract import BaseContract
-from gondi.utils import Account
+from gondi.common_utils.utils import Account
 
 
 class SampleCollection(BaseContract):

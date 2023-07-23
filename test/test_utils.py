@@ -1,6 +1,6 @@
 import unittest
 
-from gondi.utils import Environment, load_config
+from gondi.common_utils.utils import Environment, load_config
 
 
 class TestUtils(unittest.IsolatedAsyncioTestCase):

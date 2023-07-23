@@ -9,7 +9,7 @@ from web3 import Web3
 from web3.auto import w3
 
 
-from gondi.utils import Environment, load_config
+from gondi.common_utils.utils import Environment, load_config
 from gondi.structs.types import ADDRESS, BYTES32, STRING, UINT256, UINT8
 
 

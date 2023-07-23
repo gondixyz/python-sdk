@@ -1,9 +1,9 @@
 import addict
 
-import gondi.rpc as rpc
+import gondi.common_utils.rpc as rpc
 import gondi.contracts.abi.multi_source_loan as loan
 import gondi.structs.loan as structs
-from gondi.utils import Account
+from gondi.common_utils.utils import Account
 from gondi.contracts.base_contract import BaseContract
 
 
