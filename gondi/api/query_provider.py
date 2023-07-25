@@ -1,4 +1,4 @@
-from gql.dsl import DSLQuery
+from gql.dsl import DSLInlineFragment, DSLQuery, DSLSelectable
 
 from gondi.api.inputs import ListingInput, OfferInput
 from gondi.api.client import Client
@@ -14,7 +14,6 @@ class QueryProvider(metaclass=Singleton):
         connection = lending_schema.ListingConnection
         edge = lending_schema.ListingEdge
         node = lending_schema.Listing
-        nft = lending_schema.NFT
         return DSLQuery(
             lending_schema.Query.listListings.args(**listings_input.as_kwargs()).select(
                 connection.totalCount,
@@ -23,15 +22,7 @@ class QueryProvider(metaclass=Singleton):
                         node.id,
                         node.createdDate,
                         node.user.select(lending_schema.User.id),
-                        node.nft.select(
-                            nft.id,
-                            nft.tokenId,
-                            nft.collection.select(
-                                lending_schema.Collection.contract_data.select(
-                                    lending_schema.ContractData.contractAddress
-                                )
-                            ),
-                        ),
+                        self._with_nft_base_fields(node.nft),
                     )
                 ),
             )
@@ -42,7 +33,14 @@ class QueryProvider(metaclass=Singleton):
         connection = lending_schema.OfferConnection
         edge = lending_schema.OfferEdge
         node = lending_schema.Offer
-        nft = lending_schema.NFT
+        single_nft_offer = DSLInlineFragment()
+        single_nft_offer.on(lending_schema.SingleNFTOffer).select(
+            self._with_nft_base_fields(lending_schema.SingleNFTOffer.nft)
+        )
+        collection_offer = DSLInlineFragment()
+        collection_offer.on(lending_schema.CollectionOffer).select(
+            self._with_contract_address(lending_schema.CollectionOffer.collection)
+        )
         return DSLQuery(
             lending_schema.Query.listOffers.args(**offer_input.as_kwargs()).select(
                 connection.totalCount,
@@ -62,16 +60,22 @@ class QueryProvider(metaclass=Singleton):
                         node.fee,
                         node.offerHash,
                         node.signature,
-                        node.nft.select(
-                            nft.id,
-                            nft.tokenId,
-                            nft.collection.select(
-                                lending_schema.Collection.contract_data.select(
-                                    lending_schema.ContractData.contractAddress
-                                )
-                            ),
-                        ),
+                        single_nft_offer,
+                        collection_offer,
                     )
                 ),
+            )
+        )
+
+    def _with_nft_base_fields(self, query: "DSLQuery") -> "DSLSelectable":
+        lending_schema = self._client.lending_schema
+        nft = lending_schema.NFT
+        return query.select(nft.tokenId, self._with_contract_address(nft.collection))
+
+    def _with_contract_address(self, query: "DSLQuery") -> "DSLSelectable":
+        lending_schema = self._client.lending_schema
+        return query.select(
+            lending_schema.Collection.contract_data.select(
+                lending_schema.ContractData.contractAddress
             )
         )
