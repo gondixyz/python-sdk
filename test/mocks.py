@@ -1,3 +1,12 @@
+import copy
+from typing import Any
+
+from gql import Client
+from gql.dsl import DSLQuery
+
+from gondi.common_utils.singleton import Singleton
+
+
 class MockedAccount:
     def __init__(self):
         self._enabled_hd_wallet = False
@@ -48,3 +57,45 @@ class MockedWeb3:
 
     def keccak(self, _: str) -> bytes:
         return b"0"
+
+
+class MockedSession(metaclass=Singleton):
+    def __init__(self):
+        self._return_values = {
+            "generateSignInNonce": 1,
+            "signInWithEthereum": "test_bearer",
+        }
+
+        self._queries = []
+
+    @property
+    def queries(self):
+        return self._queries
+
+    @property
+    def return_values(self) -> dict[str, Any]:
+        return self._return_values
+
+    async def execute(self, query: "DSLQuery") -> dict[str, Any]:
+        self._queries.append(query)
+        return copy.copy(self._return_values)
+
+
+class MockedGraphqlClient:
+    def __init__(self, schema, transport):
+        self._client = Client(schema=schema, transport=transport)
+        self._transport = transport
+
+    async def __aenter__(self):
+        return MockedSession()
+
+    async def __aexit__(self, *args, **kwargs):
+        pass
+
+    @property
+    def schema(self):
+        return self._client.schema
+
+    @property
+    def transport(self):
+        return self._transport
