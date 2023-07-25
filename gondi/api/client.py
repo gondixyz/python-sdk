@@ -114,19 +114,12 @@ class Client(metaclass=Singleton):
 
 
 async def test():
+    from gondi.api.query_provider import QueryProvider
+
     client = Client(Environment.MAIN)
-    listings_input = inputs.ListingInput(first=24, collection_ids=[])
-    lending_schema = client.lending_schema
-    connection = lending_schema.ListingConnection
-    edge = lending_schema.ListingEdge
-    node = lending_schema.Listing
-    query = DSLQuery(
-        lending_schema.Query.listListings.args(**listings_input.as_kwargs()).select(
-            connection.totalCount,
-            connection.edges.select(edge.node.select(node.id)),
-        )
-    )
-    print(await client.auth_query(query))
+    offers_input = inputs.OfferInput(only_single_nft_offers=True)
+    provider = QueryProvider(client)
+    print(await client.query(provider.get_offers(offers_input)))
 
 
 if __name__ == "__main__":

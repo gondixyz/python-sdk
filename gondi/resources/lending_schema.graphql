@@ -52,6 +52,16 @@ enum AuctionStatus {
   LIVE
 }
 
+type AuctionWonNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  auction: Auction!
+  loan: MultiSourceLoan!
+}
+
 type Bid implements Node {
   id: String!
   amount: BigInt!
@@ -89,28 +99,6 @@ type Cart implements Node {
   id: String!
   createdDate: DateTime!
   items(first: Int! = 10, after: String): NFTConnection!
-}
-
-type Claim implements VaultActivity & Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-  walletAddress: Address!
-  redemptionPeriod: Int!
-  amount: BigInt!
-}
-
-type ClaimedManagerFee implements VaultActivity & Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-  amount: BigInt!
 }
 
 type Collection implements Node {
@@ -163,7 +151,6 @@ type CollectionOffer implements Offer & Node {
   createdDate: DateTime
   currency: Currency
   repayment: BigInt!
-  vault: Vault
   validators: [OfferValidator!]!
   collection: Collection!
   statistics: CollectionOfferStatistics!
@@ -293,18 +280,6 @@ type Currency implements Node {
 """Date with time (isoformat)"""
 scalar DateTime
 
-type Deposit implements ShareTransaction & VaultActivity & Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-  walletAddress: Address!
-  assetAmount: BigInt!
-  sharesAmount: BigInt
-}
-
 scalar Hash
 
 scalar Hex
@@ -316,9 +291,8 @@ input Interval {
 
 type Listing implements Node {
   id: String!
-  status: String!
+  marketplaceName: MarketplaceEnum!
   createdDate: DateTime!
-  updatedAt: DateTime
   nft: NFT!
   user: User!
 }
@@ -346,7 +320,6 @@ interface Loan implements Node {
   startTime: DateTime!
   duration: BigInt!
   status: String!
-  vault: Vault
   currency: Currency
   repaidActivity: LoanRepaid
   offer: Offer!
@@ -358,6 +331,7 @@ interface LoanActivity implements Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
 }
 
@@ -396,18 +370,10 @@ type LoanAuctioned implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
   totalAuctioned: BigInt!
   loanPayments: [LoanPayment!]!
-}
-
-type LoanBuyoutNotification implements Notification & Node {
-  id: String!
-  createdOn: DateTime!
-  readOn: DateTime
-  notificationType: String!
-  user: User!
-  loan: Loan!
 }
 
 type LoanDefaultReminderNotification implements Notification & Node {
@@ -417,7 +383,16 @@ type LoanDefaultReminderNotification implements Notification & Node {
   notificationType: String!
   user: User!
   defaultsInHours: Int!
-  loan: Loan!
+  loan: MultiSourceLoan!
+}
+
+type LoanDefaultedNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  loan: MultiSourceLoan!
 }
 
 type LoanForeclosed implements LoanActivity & Node {
@@ -426,6 +401,7 @@ type LoanForeclosed implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
 }
 
@@ -435,6 +411,7 @@ type LoanInitiated implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
 }
 
@@ -456,7 +433,18 @@ type LoanRefinanced implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
+}
+
+type LoanRefinancedNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  previousHistory: MultiSourceLoanHistory!
+  newHistory: MultiSourceLoanHistory!
 }
 
 type LoanRepaid implements LoanActivity & Node {
@@ -465,8 +453,18 @@ type LoanRepaid implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
   totalInterest: BigInt!
+}
+
+type LoanRepaidNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  loan: MultiSourceLoan!
 }
 
 type LoanSentToAuction implements LoanActivity & Node {
@@ -475,6 +473,7 @@ type LoanSentToAuction implements LoanActivity & Node {
   timestamp: DateTime!
   txHash: Hash!
   indexInBlock: Int!
+  loan: Loan!
   multiSourceLoanHistory: MultiSourceLoanHistory
   liquidatorAddress: Address!
 }
@@ -514,6 +513,15 @@ type LostSource implements Node {
   loan: MultiSourceLoan!
 }
 
+type LostSourceNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  lostSource: LostSource!
+}
+
 type ManyNftsStatistics {
   floorPrice: Float
   floorPrice7d: Float
@@ -550,6 +558,11 @@ type ManyNftsStatistics {
   numberOfOwners: Int
 }
 
+enum MarketplaceEnum {
+  GONDI
+  NFTFI
+}
+
 type MultiSourceLoan implements Loan & Node {
   id: String!
   address: Address!
@@ -562,7 +575,6 @@ type MultiSourceLoan implements Loan & Node {
   startTime: DateTime!
   duration: BigInt!
   status: String!
-  vault: Vault
   currency: Currency
   repaidActivity: LoanRepaid
   offer: Offer!
@@ -594,19 +606,16 @@ type MultiSourceLoanHistory implements Node {
   startTime: DateTime!
   borrowerAddress: String!
   sources: [SourceHistory!]!
+  activity: LoanActivity!
 }
 
 type Mutation {
-  editVault(vault: VaultInput!): Vault!
   generateSingleNftOfferToBeSigned(offerInput: SingleNFTOfferInput!): SingleNFTOffer!
   generateCollectionOfferToBeSigned(offerInput: CollectionOfferInput!): CollectionOffer!
   saveSignedSingleNftOffer(signedOfferInput: SingleNFTSignedOfferInput!): SingleNFTOffer!
   saveSignedCollectionOffer(signedOfferInput: CollectionSignedOfferInput!): CollectionOffer!
   generateRenegotiationOfferToBeSigned(renegotiationInput: RenegotiationOfferInput!): Renegotiation!
   saveRenegotiationSignedOffer(signedRenegotiationInput: SignedRenegotiationOfferInput!): Renegotiation!
-  depositVault(vault: VaultDepositInput!): Deposit!
-  redeemVault(vault: VaultRedeemInput!): Deposit!
-  claimVault(vault: VaultClaimInput!): Claim!
   hideOffer(contractAddress: Address!, offerId: String!): Offer!
   showOffer(contractAddress: Address!, offerId: String!): Offer!
   hideAllOffers(contractAddress: Address!, minOfferId: String!): [Offer!]!
@@ -616,8 +625,8 @@ type Mutation {
   removeListingsOfNftsFromUser: Void
   addListing(nftId: Int!): Listing!
   removeListing(nftId: Int!): Listing!
-  uploadVaultProfilePicture(vaultAddress: Address!, profilePicture: Upload!): Vault!
   markNotificationsAsRead: Void
+  markNotificationIdsAsRead(ids: [Int!]): Void
   setReferral(referrerId: Int!): Void
 }
 
@@ -659,6 +668,16 @@ type NewOfferNotification implements Notification & Node {
   notificationType: String!
   user: User!
   offer: Offer!
+}
+
+type NewRenegotiationOfferNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  renegotiation: Renegotiation!
+  loan: MultiSourceLoan!
 }
 
 enum NftSortField {
@@ -734,9 +753,14 @@ type NotificationEdge {
 
 enum NotificationType {
   SET_NFT_NOTIFICATION
-  NEW_OFFER_NOTIFICATION
   OFFER_ACCEPTED_NOTIFICATION
-  LOAN_BUYOUT_NOTIFICATION
+  NEW_OFFER_NOTIFICATION
+  LOAN_DEFAULTED_NOTIFICATION
+  LOAN_REPAID_NOTIFICATION
+  NEW_RENEGOTIATION_OFFER_NOTIFICATION
+  AUCTION_WON_NOTIFICATION
+  OUTBID_NOTIFICATION
+  LOST_SOURCE_NOTIFICATION
   LOAN_DEFAULT_REMINDER_NOTIFICATION
 }
 
@@ -761,7 +785,6 @@ interface Offer implements Node {
   createdDate: DateTime
   currency: Currency
   repayment: BigInt!
-  vault: Vault
   validators: [OfferValidator!]!
 }
 
@@ -772,7 +795,7 @@ type OfferAcceptedNotification implements Notification & Node {
   notificationType: String!
   user: User!
   offer: Offer!
-  loan: Loan!
+  loan: MultiSourceLoan!
 }
 
 type OfferConnection {
@@ -859,6 +882,18 @@ enum Ordering {
   DESC
 }
 
+type OutbidNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  auction: Auction!
+  loan: MultiSourceLoan!
+  userBid: Bid!
+  newBid: Bid!
+}
+
 type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -886,8 +921,6 @@ type PointActivityEdge {
 }
 
 type Query {
-  listVaults(first: Int! = 10, after: String): VaultConnection!
-  getVaultById(vaultId: String!): Vault
   getLoanById(address: String!, loanId: Int!): Loan
   listCollectionsWithLoans(first: Int! = 10, after: String, searchTerm: String = null): CollectionConnection!
   listCollectionsWithListings(first: Int! = 10, after: String, searchTerm: String = null): CollectionConnection!
@@ -895,15 +928,13 @@ type Query {
   listLoanActivities(first: Int! = 10, after: String, loanId: String = null, types: [LoanActivityType!] = null, sortBy: [LoanActivitySortInput!] = null): LoanActivityConnection!
   listSources(first: Int! = 10, after: String, includeLost: Boolean = false, statuses: [LoanStatusType!] = null, lenderAddress: String = null, sortBy: [SourceSortInput!] = null, terms: TermsFilter = null): SourcesAndLostSourcesConnection!
   listNftsFromUser(searchTerm: String = null, withLoans: Boolean = false, sortBy: [NftSortInput!] = null, first: Int = 10, after: String): NFTConnection!
-  listVaultActivities(vaultAddress: Address!, activityTypes: [VaultActivityType!] = null, sortBy: [VaultActivitySortInput!] = null, first: Int = 10, after: String): VaultActivityConnection!
-  getVaultActivityById(activityId: Int!): VaultActivity
   listNftOffersAndRenegotiations(lenderAddress: String = null, statuses: [OfferStatus!] = null, sortBy: OffersSortInput = null, first: Int = 20, after: String, terms: TermsFilter = null): OffersAndRenegotiationsConnection!
   listOffers(lenderAddress: String = null, borrowerAddress: String = null, statuses: [OfferStatus!] = null, hidden: Boolean = null, onlySingleNftOffers: Boolean = false, onlyCollectionOffers: Boolean = false, sortBy: [OffersSortInput!] = null, nfts: [Int!] = null, collections: [Int!] = null, first: Int = 10, after: String, terms: TermsFilter = null): OfferConnection!
   listRenegotiations(sortBy: [OffersSortInput!] = null, statuses: [OfferStatus!] = null, hidden: Boolean = null, terms: RefinanceTermsFilter = null, loanId: String = null, first: Int = 10, after: String): RenegotiationConnection!
   listListings(userFilter: UserFilter = null, collectionIds: [Int!] = null, searchTerm: String = null, withLoans: Boolean = false, first: Int = 10, after: String): ListingConnection!
   getListingById(listingId: Int!): Listing
   getNftBySlugAndTokenId(slug: String!, tokenId: BigInt!): NFT
-  listNotifications(onlyNotRead: Boolean = true, notificationTypes: [NotificationType!] = null, first: Int = 50, after: String): NotificationConnection!
+  listNotifications(notificationTypes: [NotificationType!] = null, onlyUnread: Boolean! = false, onlyRead: Boolean! = false, first: Int = 50, after: String): NotificationConnection!
   listCollections(first: Int = 10, after: String, searchTerm: String = null): CollectionConnection!
   getCollectionBySlug(slug: String!): Collection
   listAuctions(first: Int = 10, after: String, statuses: [AuctionStatus!] = null, sortBy: [AuctionSortInput!] = null): AuctionConnection!
@@ -917,26 +948,6 @@ type Query {
 input RangeInput {
   min: Int!
   max: Int!
-}
-
-type Redemption implements ShareTransaction & VaultActivity & Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-  walletAddress: Address!
-  assetAmount: BigInt!
-  sharesAmount: BigInt
-  epoch: BigInt!
-  statistics: RedemptionStatistics!
-}
-
-type RedemptionStatistics {
-  balance: Float
-  pendingRepayment: Float
-  lastRepayment: DateTime
 }
 
 input RefinanceTermsFilter {
@@ -1049,18 +1060,6 @@ type SetNftNotification implements Notification & Node {
   nft: NFT!
 }
 
-interface ShareTransaction implements VaultActivity & Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-  walletAddress: Address!
-  assetAmount: BigInt!
-  sharesAmount: BigInt
-}
-
 scalar Signature
 
 input SignedRenegotiationOfferInput {
@@ -1101,7 +1100,6 @@ type SingleNFTOffer implements Offer & Node {
   createdDate: DateTime
   currency: Currency
   repayment: BigInt!
-  vault: Vault
   validators: [OfferValidator!]!
   nft: NFT!
 }
@@ -1174,7 +1172,6 @@ type SingleSourceLoan implements Loan & Node {
   startTime: DateTime!
   duration: BigInt!
   status: String!
-  vault: Vault
   currency: Currency
   repaidActivity: LoanRepaid
   offer: Offer!
@@ -1212,6 +1209,7 @@ type SourceHistory implements Node {
 enum SourceSortField {
   ORIGINATION_FEE
   ACCRUED_INTEREST
+  EARNED_INTEREST
   APR_BPS
   START_TIME
   DURATION
@@ -1256,7 +1254,14 @@ type Trait {
   statistics: ManyNftsStatistics!
 }
 
-scalar Upload
+type UnderfundedOfferNotification implements Notification & Node {
+  id: String!
+  createdOn: DateTime!
+  readOn: DateTime
+  notificationType: String!
+  user: User!
+  offer: Offer!
+}
 
 type User implements Node {
   id: String!
@@ -1283,122 +1288,6 @@ type User implements Node {
 input UserFilter {
   userId: Int!
   onlyOrExclude: Boolean!
-}
-
-type Vault implements Node {
-  id: String!
-  address: Address!
-  name: String!
-  symbol: String!
-  decimals: Int!
-  creatorAddress: Address!
-  assetAddress: Address!
-  controllerAddress: Address!
-  description: String
-  loanMaxDuration: BigInt!
-  redemptionFrequency: BigInt!
-  redemptionTimeWindow: BigInt!
-  maxCapacity: BigInt!
-  managerFeeRecipient: String!
-  managerPerformanceFeeBps: BigInt!
-  timestamp: DateTime!
-  lastModified: DateTime
-  txHash: Hash!
-  indexInBlock: Int!
-  whitelistedCollections(first: Int! = 10, after: String): CollectionConnection!
-  originalProfilePicture: String
-  size512ProfilePicture: String
-  size256ProfilePicture: String
-  size128ProfilePicture: String
-  size64ProfilePicture: String
-  statistics: VaultStatistics!
-}
-
-interface VaultActivity implements Node {
-  id: String!
-  vaultAddress: Address!
-  timestamp: DateTime!
-  txHash: Hash!
-  indexInBlock: Int
-  pending: Boolean!
-}
-
-type VaultActivityConnection {
-  pageInfo: PageInfo!
-  edges: [VaultActivityEdge!]!
-  totalCount: Int
-}
-
-type VaultActivityEdge {
-  node: VaultActivity!
-  cursor: String!
-}
-
-enum VaultActivitySortField {
-  TIMESTAMP
-}
-
-input VaultActivitySortInput {
-  field: VaultActivitySortField!
-  order: Ordering!
-}
-
-enum VaultActivityType {
-  DEPOSIT
-  REDEMPTION
-  CLAIM
-  CLAIMED_MANAGER_FEE
-}
-
-input VaultClaimInput {
-  vaultAddress: Address!
-  walletAddress: Address!
-  txHash: Hash!
-  epoch: BigInt!
-  amount: BigInt!
-}
-
-type VaultConnection {
-  pageInfo: PageInfo!
-  edges: [VaultEdge!]!
-  totalCount: Int
-}
-
-input VaultDepositInput {
-  vaultAddress: Address!
-  walletAddress: Address!
-  txHash: Hash!
-  assetAmount: BigInt!
-}
-
-type VaultEdge {
-  node: Vault!
-  cursor: String!
-}
-
-input VaultInput {
-  vaultAddress: Address!
-  description: String!
-}
-
-input VaultRedeemInput {
-  vaultAddress: Address!
-  walletAddress: Address!
-  txHash: Hash!
-  assetAmount: BigInt!
-  sharesAmount: BigInt!
-}
-
-type VaultStatistics {
-  balance: Float
-  unusedCapital: Float
-  outstanding: Float
-  shares: Float
-  sharePrice: Float
-  projectedApy: Float
-  activeLoanValue: Float
-  activeLoanCount: Float
-  utilizationRate: Float
 }
 
 """Represents NULL values"""
