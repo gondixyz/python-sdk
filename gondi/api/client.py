@@ -1,10 +1,13 @@
+import asyncio
 import datetime as dt
+import logging
 import os
 
 import gql
 from eth_account.messages import encode_defunct
 from gql.dsl import dsl_gql, DSLSchema, DSLMutation, DSLQuery
 from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.exceptions import TransportServerError
 from siwe import SiweMessage
 from web3.auto import w3
 
@@ -15,6 +18,8 @@ from gondi.common_utils.singleton import Singleton
 DOMAIN = "localhost"
 URI = f"http://{DOMAIN}"
 STATEMENT = "Sign in with Ethereum to the app."
+COOLING_OFF = dt.timedelta(seconds=60)
+RATE_LIMIT_CODE = 429
 
 
 def requires_login(fn):
@@ -43,10 +48,11 @@ class Client(metaclass=Singleton):
         self._version = config.client_version
         self._chain_id = config.chain_id
         self._bearer = None
+        self._no_request_until = None
 
     @property
-    def schema(self) -> "DSLSchema":
-        return self._ds
+    def bearer(self) -> str:
+        return self._bearer
 
     @property
     def lending_schema(self) -> "DSLSchema":
@@ -73,13 +79,11 @@ class Client(metaclass=Singleton):
             await self.login()
 
     async def query(self, query: "DSLQuery") -> dict:
-        async with self._lending_client as session:
-            return await session.execute(dsl_gql(query))
+        return await self._query(query)
 
     @requires_login
     async def auth_query(self, query: "DSLQuery") -> dict:
-        async with self._lending_client as session:
-            return await session.execute(dsl_gql(query))
+        return await self._query(query)
 
     def _update_headers(self, bearer: str):
         self._client.transport.headers = {"Authorization": f"Bearer {bearer}"}
@@ -105,26 +109,32 @@ class Client(metaclass=Singleton):
             nonce=nonce,
         ).prepare_message()
 
+    async def _query(self, query: "DSLQuery") -> dict | None:
+        if (
+            self._no_request_until is not None
+            and dt.datetime.now() < self._no_request_until
+        ):
+            logging.warning(
+                "Going to sleep. Need to wait until: %s", self._no_request_until
+            )
+            await asyncio.sleep(
+                (self._no_request_until - dt.datetime.now()).total_seconds()
+            )
+        try:
+            async with self._lending_client as session:
+                query = await session.execute(dsl_gql(query))
+                self._no_request_until = None
+        except TransportServerError as e:
+            if e.code == RATE_LIMIT_CODE:
+                self._no_request_until = dt.datetime.now() + COOLING_OFF
+                logging.warning("Cooling off. Rate limit exceeded.")
+                return None
+            raise e
+        return query
+
     @staticmethod
     def _get_schema(schema: str) -> str:
         base_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../resources"
         filename = f"{base_dir}/{schema}.graphql"
         with open(filename) as f:
             return f.read()
-
-
-async def test():
-    from gondi.api.query_provider import QueryProvider
-
-    client = Client(Environment.MAIN)
-    offers_input = inputs.OfferInput(only_single_nft_offers=True)
-    provider = QueryProvider(client)
-    print(await client.query(provider.get_offers(offers_input)))
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    loop = asyncio.get_event_loop()
-
-    loop.run_until_complete(test())

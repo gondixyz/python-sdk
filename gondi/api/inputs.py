@@ -1,9 +1,11 @@
+from collections.abc import Iterable
 from enum import Enum
 from typing import Any, Generic, TypeVar
 
 from dataclasses import asdict, dataclass
 
 T = TypeVar("T")
+Iterables = tuple | list | set
 
 
 class AsKwargsMixin:
@@ -26,6 +28,10 @@ class AsKwargsMixin:
                 for k, v in value.items()
                 if v is not None
             }
+        if isinstance(value, Iterables):
+            return [self._parsed(v) for v in value if v is not None]
+        if isinstance(value, Enum):
+            return value.value
         return value
 
     @staticmethod
