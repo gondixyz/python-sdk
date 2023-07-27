@@ -1,3 +1,5 @@
+![GitHub](https://img.shields.io/pypi/pyversions/gondi)
+![GitHub](https://img.shields.io/pypi/v/gondi)
 ![GitHub](https://img.shields.io/github/license/gondixyz/python-sdk)
 
 Gondi Python SDK

@@ -2,7 +2,7 @@
 name = "gondi"
 version = "0.1.0"
 description = "Gondi SDK"
-authors = ["Florida Street"]
+authors = ["Gondi <e@floridastreet.xyz>"]
 license = "MIT"
 readme = "README.md"
 
